@@ -17,11 +17,14 @@ pipeline {
         }
         stage('Install Dependencies & Build Application') {
             steps {
-                echo 'Installing dependencies and building the application...'
-                bat '''
+            echo 'Installing dependencies and building the application...'
+            dir('C:/Users/Maheeza/Desktop/Roshan/backend') { // Set the working directory
+                sh '''
                     npm install
                     npm run build
                 '''
+            }
+        }
             }
         }
         stage('Build Docker Image') {
