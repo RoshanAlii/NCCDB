@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Management</title>
+    <!-- Bootstrap CSS -->
+    <link 
+        rel="stylesheet" 
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    >
+    <!-- Font Awesome (for icons) -->
+    <link 
+        rel="stylesheet" 
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta2/css/all.min.css" 
+    />
+    <!-- Google Fonts (Poppins for a crisp look) -->
+    <link 
+        rel="stylesheet" 
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600;900&display=swap"
+    >
+    <style>
+        /*******************************************************
+         *               GLOBAL / BASE STYLES
+         *******************************************************/
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            /* Full-colored background - a bright gradient */
+            background: linear-gradient(to right, #1c92d2, #f2fcfe);
+            position: relative;
+            color: #222; /* High contrast text color for readability */
+        }
+
+        /*******************************************************
+         *               NAVBAR
+         *******************************************************/
+        .navbar {
+            background-color: #0c528e !important; /* Dark, bold color for navbar */
+            border-bottom: 2px solid #0a4668;
+        }
+        .navbar-brand {
+            color: #fff !important;
+            font-weight: 700;
+            margin: 0 auto; /* Centering brand in navbar */
+            padding: 0;
+        }
+        .navbar-brand:hover {
+            color: #f0f0f0 !important;
+        }
+
+        /*******************************************************
+         *               WAVE BACKGROUND (TOP & BOTTOM)
+         *******************************************************/
+        .wave-top,
+        .wave-bottom {
+            position: absolute;
+            width: 100%;
+            height: 200px;
+            left: 0;
+            z-index: -1; /* Behind page content */
+            overflow: hidden;
+        }
+        .wave-top {
+            top: 0;
+            transform: rotate(180deg);
+        }
+        .wave-bottom {
+            bottom: 0;
+        }
+        .wave-top svg,
+        .wave-bottom svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        /*******************************************************
+         *               ANIMATIONS
+         *******************************************************/
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+        @keyframes pulseHeading {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /*******************************************************
+         *               PAGE CONTENT
+         *******************************************************/
+        .page-content {
+            min-height: calc(100vh - 60px);
+            position: relative;
+            z-index: 1;
+            padding: 2rem 1rem;
+            margin-top: 30px;
+            margin-bottom: 30px;
+            animation: fadeInUp 0.6s ease-out; /* Slide content in on load */
+        }
+        .page-heading {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2rem;         
+            font-weight: 900;
+            /* Contrasting color for heading text */
+            color: #fff; 
+            /* Continuous pulse for heading */
+            animation: pulseHeading 2s infinite;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+        }
+
+        /*******************************************************
+         *               TABS & TAB CONTENT
+         *******************************************************/
+        .nav-tabs {
+            border-bottom: none;
+            justify-content: center;
+        }
+        .nav-tabs .nav-link {
+            color: #222;
+            background-color: #fff;
+            font-weight: 600;
+            border: 2px solid transparent;
+            margin: 0 0.3rem;
+            border-radius: 6px 6px 0 0;
+            transition: all 0.2s ease;
+        }
+        .nav-tabs .nav-link:hover {
+            background-color: #f1f1f1;
+        }
+        .nav-tabs .nav-link.active {
+            color: #fff !important;
+            background-color: #0c528e !important; /* Match navbar color */
+            border-color: #0c528e !important;
+        }
+        .tab-content {
+            margin-top: 2rem;
+        }
+
+        /*******************************************************
+         *               CARDS & FORM
+         *******************************************************/
+        .card-custom {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.6s ease-out;
+        }
+        .card-title-custom {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1.2rem;
+            color: #333;
+        }
+        #studentForm .form-label {
+            font-weight: 600;
+            color: #333;
+        }
+        #studentForm button {
+            margin-top: 1rem;
+            transition: transform 0.2s ease;
+        }
+        #studentForm button:hover {
+            transform: scale(1.03);
+        }
+
+        /*******************************************************
+         *               TABLE STYLES
+         *******************************************************/
+        .table thead {
+            background-color: #0c528e; 
+            color: #fff;
+        }
+        .table th,
+        .table td {
+            vertical-align: middle !important;
+            color: #111; /* Darker text for readability */
+        }
+        .table-hover tbody tr {
+            animation: fadeIn 0.7s ease;
+        }
+        .table-hover tbody tr:hover {
+            background-color: #f2f2f2;
+        }
+
+        /*******************************************************
+         *               BUTTON STYLES
+         *******************************************************/
+        .btn-delete {
+            border: none;
+            background: #dc3545;
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .btn-delete i {
+            margin-right: 5px;
+        }
+        .btn-delete:hover {
+            background: #c82333;
+            transform: scale(1.05);
+        }
+
+        /*******************************************************
+         *               DATE INPUT STYLING
+         *******************************************************/
+        input[type="date"] {
+            padding-right: 30px;
+            background-color: #fff;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            color: #495057;
+            transition: border-color 0.15s ease-in-out;
+        }
+        input[type="date"]:focus {
+            border-color: #0c528e;
+            outline: none;
+            box-shadow: 0 0 0 0.2rem rgba(12,82,142,0.25);
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+            border-radius: 4px;
+            filter: invert(28%) sepia(32%) saturate(3022%) 
+                    hue-rotate(339deg) brightness(100%) contrast(98%);
+        }
+        input[type="date"]::-webkit-inner-spin-button,
+        input[type="date"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /*******************************************************
+         *               RESPONSIVE
+         *******************************************************/
+        @media (max-width: 767px) {
+            .page-content {
+                padding: 1rem;
+                margin-top: 10px;
+                margin-bottom: 10px;
+            }
+            .navbar {
+                padding-left: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Wave background at the top -->
+    <div class="wave-top">
+        <svg viewBox="0 0 500 150" preserveAspectRatio="none">
+          <path 
+            d="M0.00,49.98 C149.99,150.00 349.72,-50.00 500.00,49.98 L500.00,0.00 L0.00,0.00 Z" 
+            style="fill: #0c528e;">
+          </path>
+        </svg>
+    </div>
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <!-- Different icon for variety -->
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-chalkboard-teacher"></i> Student Management
+            </a>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT (TABS) -->
+    <div class="container page-content">
+        <h1 class="page-heading">Student Management Dashboard</h1>
+
+        <!-- Nav Tabs -->
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button 
+                    class="nav-link active" 
+                    id="tab-add-student" 
+                    data-bs-toggle="tab" 
+                    data-bs-target="#add-student" 
+                    type="button" 
+                    role="tab" 
+                    aria-controls="add-student" 
+                    aria-selected="true"
+                >
+                    <i class="fas fa-user-plus"></i> Add Student
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button 
+                    class="nav-link" 
+                    id="tab-all-students" 
+                    data-bs-toggle="tab" 
+                    data-bs-target="#all-students" 
+                    type="button" 
+                    role="tab" 
+                    aria-controls="all-students" 
+                    aria-selected="false"
+                >
+                    <i class="fas fa-list"></i> All Students
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="myTabContent">
+            <!-- Add Student Tab Pane -->
+            <div 
+                class="tab-pane fade show active" 
+                id="add-student" 
+                role="tabpanel" 
+                aria-labelledby="tab-add-student"
+            >
+                <div class="card-custom">
+                    <h2 class="card-title-custom">Add a New Student</h2>
+                    <form id="studentForm" class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label for="IndexNo" class="form-label">Index Number</label>
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                id="IndexNo" 
+                                placeholder="Index Number" 
+                                required 
+                            />
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label for="Name" class="form-label">Name</label>
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                id="Name" 
+                                placeholder="Name" 
+                                required 
+                            />
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label for="DoB" class="form-label">Date of Birth</label>
+                            <input 
+                                type="date" 
+                                class="form-control" 
+                                id="DoB" 
+                                required 
+                            />
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label for="GPA" class="form-label">GPA</label>
+                            <input 
+                                type="number" 
+                                step="0.01"
+                                class="form-control" 
+                                id="GPA" 
+                                placeholder="E.g. 2.00" 
+                                required 
+                            />
+                        </div>
+                        <div class="col-12 text-end">
+                            <button 
+                                type="submit" 
+                                class="btn btn-success px-4 py-2"
+                            >
+                                <i class="fas fa-user-plus"></i> Add Student
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- All Students Tab Pane -->
+            <div 
+                class="tab-pane fade" 
+                id="all-students" 
+                role="tabpanel" 
+                aria-labelledby="tab-all-students"
+            >
+                <div class="card-custom">
+                    <h2 class="card-title-custom">All Students</h2>
+                    <div class="table-responsive">
+                        <table 
+                            id="studentsTable" 
+                            class="table table-hover align-middle"
+                        >
+                            <thead>
+                                <tr>
+                                    <th>Index No</th>
+                                    <th>Name</th>
+                                    <th>Date of Birth</th>
+                                    <th>GPA</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Dynamically populated rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wave background at the bottom -->
+    <div class="wave-bottom">
+        <svg viewBox="0 0 500 150" preserveAspectRatio="none">
+          <path 
+            d="M0.00,49.98 C149.99,150.00 349.72,-50.00 500.00,49.98 L500.00,150.00 L0.00,150.00 Z" 
+            style="fill: #0c528e;">
+          </path>
+        </svg>
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <script 
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
+    </script>
+    <script>
+        // Function to fetch and display all students
+        function fetchStudents() {
+            fetch('http://localhost:3000/students')
+                .then(response => response.json())
+                .then(data => {
+                    const studentsTable = document.querySelector("#studentsTable tbody");
+                    studentsTable.innerHTML = '';  // Clear the table
+                    data.forEach(student => {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                            <td>${student.IndexNo}</td>
+                            <td>${student.Name}</td>
+                            <td>${student.DoB}</td>
+                            <td>${student.GPA}</td>
+                            <td>
+                                <button 
+                                    class="btn-delete" 
+                                    onclick="deleteStudent(${student.id})"
+                                >
+                                    <i class="fas fa-trash-alt"></i> Delete
+                                </button>
+                            </td>
+                        `;
+                        studentsTable.appendChild(row);
+                    });
+                })
+                .catch(error => console.error('Error fetching students:', error));
+        }
+
+        // Fetch the students when the page loads
+        window.onload = fetchStudents;
+
+        // Handle the form submission to add a student
+        document.getElementById('studentForm').addEventListener('submit', function(event) {
+            event.preventDefault();  // Prevent form refresh
+
+            // Get form data
+            const IndexNo = document.getElementById('IndexNo').value;
+            const Name = document.getElementById('Name').value;
+            const DoB = document.getElementById('DoB').value;
+            const GPA = document.getElementById('GPA').value;
+
+            // Send POST request to add student
+            fetch('http://localhost:3000/students', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    IndexNo,
+                    Name,
+                    DoB,
+                    GPA
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Once added, refresh the student list
+                fetchStudents();
+            })
+            .catch(error => console.error('Error adding student:', error));
+        });
+
+        // Function to delete a student
+        function deleteStudent(studentId) {
+            fetch(`http://localhost:3000/students/${studentId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                // After deleting, refresh the student list
+                fetchStudents();
+            })
+            .catch(error => console.error('Error deleting student:', error));
+        }
+    </script>
+</body>
+</html>

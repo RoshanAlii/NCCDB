@@ -1,0 +1,47 @@
+services:
+  frontend:
+    build:
+      context: ./frontend  
+      dockerfile: Dockerfile.frontend
+    image: roshan12/frontend:latest
+    ports:
+      - "8080:80"  
+    volumes:
+      - ./frontend:/usr/share/nginx/html  
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.backend
+    image: roshan12/backend:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=MDIsql1223@#  
+      - DB_NAME=NCCDB
+    depends_on:
+      mysql:
+        condition: service_healthy  
+
+  mysql:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: MDIsql1223@#  
+      MYSQL_DATABASE: NCCDB
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ppassword@#"]
+      interval: 10s
+      retries: 5
+      start_period: 30s  
+      timeout: 5s
+
+volumes:
+  mysql_data:
