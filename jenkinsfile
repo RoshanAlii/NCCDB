@@ -1,75 +1,66 @@
 pipeline {
     agent any
-
     environment {
-        DOCKER_CREDENTIALS_ID = '9256c4ce-3fac-44a8-9405-6b7f5b6c562e'  
+        DOCKER_HUB_USER = 'roshanalii'
+        DOCKER_HUB_PASS = 'Aa19960415Aa#'
+        REPO_URL = 'https://github.com/RoshanAlii/NCCDB'
+        DOCKER_IMAGE_NAME = 'roshanalii/nccdb'
+        FRONTEND_PORT = '8080'
     }
-
     stages {
         stage('Clone Repository') {
             steps {
-                git branch: 'master', url: 'https://github.com/RoshanAlii/netCentricProject-master/tree/main/netCentricProject-master'
+                echo 'Cloning the repository...'
+                git branch: 'master', credentialsId: 'github-credentials', url: "${REPO_URL}"
             }
         }
-
-        stage('Build Docker Images') {
+        stage('Build Application') {
             steps {
-                bat 'docker-compose build'
+                echo 'Building the application...'
+                // Add your build commands here
             }
         }
-
-        stage('Test Backend') {
+        stage('Test Application') {
             steps {
-                bat 'docker-compose run backend npm test'
+                echo 'Running tests...'
+                // Add your test commands here
             }
         }
-
-        stage('Push to Docker Hub') {
+        stage('Build Docker Image') {
             steps {
-                withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS_ID, 
-                                                  usernameVariable: 'DOCKER_USER', 
-                                                  passwordVariable: 'DOCKER_PASS')]) {
-                    script {
-                        
-                        echo "Docker username: %DOCKER_USER%" 
-
-                        
-                        if (!DOCKER_PASS) {
-                            error "Password variable is empty. Check Jenkins credentials."
-                        }
-
-                     
-                        bat """
-                            echo DOCKER_PASS | docker login -u %DOCKER_USER% --password-stdin
-                            if %ERRORLEVEL% NEQ 0 (
-                                echo Docker login failed! Error code: %ERRORLEVEL%
-                                exit /b %ERRORLEVEL%
-                            )
-                        """
-                        
-                       
-                        bat 'docker-compose push'
-                    }
+                script {
+                    echo 'Building Docker image...'
+                    sh "docker build -t ${DOCKER_IMAGE_NAME}:latest ."
                 }
             }
         }
-
-        stage('Deploy') {
+        stage('Push Docker Image to Hub') {
             steps {
-                bat 'docker-compose up -d'
+                script {
+                    echo 'Pushing Docker image to Docker Hub...'
+                    sh "echo ${DOCKER_HUB_PASS} | docker login -u ${DOCKER_HUB_USER} --password-stdin"
+                    sh "docker push ${DOCKER_IMAGE_NAME}:latest"
+                }
+            }
+        }
+        stage('Deploy Frontend') {
+            steps {
+                script {
+                    echo 'Deploying the frontend...'
+                    sh "docker run -d -p ${FRONTEND_PORT}:80 ${DOCKER_IMAGE_NAME}:latest"
+                }
             }
         }
     }
-
     post {
         always {
-            echo 'Cleaning up and finishing the pipeline.'
+            echo 'Pipeline execution completed.'
         }
         success {
-            echo 'Pipeline completed successfully!'
+            echo 'Pipeline executed successfully.'
         }
         failure {
-            echo 'Pipeline failed. Please check the logs.'
+            echo 'Pipeline failed. Please check logs.'
         }
     }
 }
