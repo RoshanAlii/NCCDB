@@ -7,6 +7,7 @@ pipeline {
         DOCKER_IMAGE_NAME = 'roshanalii/nccdb'
         FRONTEND_PORT = '8080'
         DOCKER_CONTAINER_NAME = 'nccdb-frontend'
+        WORKSPACE_PATH = 'C:/Users/Maheeza/Desktop/Roshan/backend' // Correct working directory
     }
     stages {
         stage('Clone Repository') {
@@ -17,21 +18,22 @@ pipeline {
         }
         stage('Install Dependencies & Build Application') {
             steps {
-            echo 'Installing dependencies and building the application...'
-            dir('C:/Users/Maheeza/Desktop/Roshan/backend') { // Set the working directory
-                sh '''
-                    npm install
-                    npm run build
-                '''
-            }
-        }
+                echo 'Installing dependencies and building the application...'
+                dir("${WORKSPACE_PATH}") { // Set the correct working directory
+                    bat '''
+                        npm install
+                        npm run build
+                    '''
+                }
             }
         }
         stage('Build Docker Image') {
             steps {
                 script {
                     echo 'Building Docker image...'
-                    bat "docker build -t ${DOCKER_IMAGE_NAME}:latest ."
+                    dir("${WORKSPACE_PATH}") { // Ensure Docker context is correct
+                        bat "docker build -t ${DOCKER_IMAGE_NAME}:latest ."
+                    }
                 }
             }
         }
@@ -51,11 +53,11 @@ pipeline {
                 script {
                     echo 'Deploying the frontend locally...'
                     bat """
-                        # Stop and remove any running container with the same name
+                        REM Stop and remove any existing container with the same name
                         docker stop ${DOCKER_CONTAINER_NAME} || true
                         docker rm ${DOCKER_CONTAINER_NAME} || true
                         
-                        # Run the new container
+                        REM Run the new container
                         docker run -d --name ${DOCKER_CONTAINER_NAME} -p ${FRONTEND_PORT}:80 ${DOCKER_IMAGE_NAME}:latest
                     """
                 }
